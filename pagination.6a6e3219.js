@@ -7,4 +7,4 @@ var e,t=arguments[3];!function(t,r){"object"==typeof exports&&"object"==typeof m
 },{"handlebars/dist/handlebars.runtime":"pAws"}],"o8lo":[function(require,module,exports) {
 "use strict";var e=t(require("../templates/posts.hbs"));function t(e){return e&&e.__esModule?e:{default:e}}const o=document.querySelector(".js-load-more"),s=document.querySelector(".js-posts"),n="https://jsonplaceholder.typicode.com";let r=1;const c=()=>fetch(`${n}/posts?_limit=10&_page=${r}`).then(e=>{if(!e.ok)throw new Error(e.status);return e.json()});c().then(t=>{s.insertAdjacentHTML("beforeend",(0,e.default)(t))}).catch(e=>{console.log(e)}),o.addEventListener("click",t=>{r+=1,c().then(t=>{s.insertAdjacentHTML("beforeend",(0,e.default)(t))}).catch(e=>{console.log(e)})});
 },{"../templates/posts.hbs":"MRql"}]},{},["o8lo"], null)
-//# sourceMappingURL=/parcel-project-template/pagination.6a6e3219.js.map
+//# sourceMappingURL=/goit-js-hw-11/pagination.6a6e3219.js.map
