@@ -31,18 +31,15 @@ searchFormEl.addEventListener('submit', async event => {
   const { data } = await unsplashApi.fetchPhotos();
   try {
     if (data.hits.length === 0) {
-      loadMoreBtnEl.classList.add('is-hidden');
       return;
     }
 
     if (data.totalHits === 1) {
       galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.hits));
-      loadMoreBtnEl.classList.add('is-hidden');
       return;
     }
 
     galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.hits));
-    loadMoreBtnEl.classList.remove('is-hidden');
 
     let lightbox = new SimpleLightbox('.gallery a', {
       captionDelay: 250,
