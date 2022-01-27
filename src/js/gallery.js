@@ -1,8 +1,10 @@
 'use strict';
-// https://unsplash.com/
 
 import { UnsplashAPI } from './unsplash-api';
 import galleryCardsTemplate from '../templates/gallery-card.hbs';
+import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryListEl = document.querySelector('.js-gallery');
@@ -10,18 +12,15 @@ const loadMoreBtnEl = document.querySelector('.js-load-more');
 
 const unsplashApi = new UnsplashAPI();
 
-unsplashApi.getRandomPhotos().then(data => {
-  console.log(data);
-  galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data));
-});
-
-searchFormEl.addEventListener('submit', event => {
+searchFormEl.addEventListener('submit', async event => {
   event.preventDefault();
 
   const keyword = event.currentTarget.elements['user-search-query'].value;
 
   if (keyword.trim() === '') {
-    return;
+    return Notiflix.Notify.info(
+      '"Sorry, there are no images matching your search query. Please try again."',
+    );
   }
 
   unsplashApi.keyword = keyword;
@@ -29,49 +28,47 @@ searchFormEl.addEventListener('submit', event => {
 
   galleryListEl.innerHTML = '';
 
-  unsplashApi
-    .fetchPhotos()
-    .then(data => {
-      if (data.results.length === 0) {
-        loadMoreBtnEl.classList.add('is-hidden');
-        return;
-      }
+  const { data } = await unsplashApi.fetchPhotos();
+  try {
+    if (data.hits.length === 0) {
+      loadMoreBtnEl.classList.add('is-hidden');
+      return;
+    }
 
-      if (data.total_pages === 1) {
-        galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.results));
-        loadMoreBtnEl.classList.add('is-hidden');
-        return;
-      }
+    if (data.totalHits === 1) {
+      galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.hits));
+      loadMoreBtnEl.classList.add('is-hidden');
+      return;
+    }
 
-      galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.results));
-      loadMoreBtnEl.classList.remove('is-hidden');
-    })
-    .catch(err => {
-      console.log(err);
+    galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.hits));
+    loadMoreBtnEl.classList.remove('is-hidden');
+
+    let lightbox = new SimpleLightbox('.gallery a', {
+      captionDelay: 250,
+      navText: ['<', '>'],
     });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
-loadMoreBtnEl.addEventListener('click', event => {
-  unsplashApi.page += 1;
+window.addEventListener('scroll', async event => {
+  let windowRelativeBottom = document.documentElement.getBoundingClientRect().bottom;
 
-  unsplashApi
-    .fetchPhotos()
-    .then(data => {
-      if (data.results.length === 0) {
-        loadMoreBtnEl.classList.add('is-hidden');
-        return;
-      }
+  if (windowRelativeBottom <= document.documentElement.clientHeight + 100) {
+    try {
+      unsplashApi.page += 1;
 
-      if (data.total_pages === unsplashApi.page) {
-        galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.results));
-        loadMoreBtnEl.classList.add('is-hidden');
-        return;
-      }
+      const { data } = await unsplashApi.fetchPhotos();
 
-      galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.results));
-      loadMoreBtnEl.classList.remove('is-hidden');
-    })
-    .catch(err => {
+      galleryListEl.insertAdjacentHTML('beforeend', galleryCardsTemplate(data.hits));
+      let lightbox = new SimpleLightbox('.gallery a', {
+        captionDelay: 250,
+        navText: ['<', '>'],
+      });
+    } catch (err) {
       console.log(err);
-    });
+    }
+  }
 });
